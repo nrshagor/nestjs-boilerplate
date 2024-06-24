@@ -1,4 +1,4 @@
-// user.entity.ts
+// users/user.entity.ts
 
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 

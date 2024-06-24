@@ -1,4 +1,4 @@
-// users.module.ts
+// users/users.module.ts
 
 import { Module } from '@nestjs/common';
 import { UsersService } from './users.service';

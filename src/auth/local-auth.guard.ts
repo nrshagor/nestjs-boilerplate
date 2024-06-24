@@ -1,4 +1,4 @@
-// local-auth.guard.ts
+// auth/local-auth.guard.ts
 
 import { Injectable, ExecutionContext } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';

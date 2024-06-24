@@ -1,3 +1,4 @@
+// auth/auth.service.ts
 import {
   Injectable,
   NotFoundException,

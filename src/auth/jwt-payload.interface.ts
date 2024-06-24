@@ -1,4 +1,4 @@
-// jwt-payload.interface.ts
+// auth/jwt-payload.interface.ts
 
 export interface JwtPayload {
   sub: number; // Subject (typically user ID)
