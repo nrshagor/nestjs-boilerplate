@@ -1,4 +1,6 @@
-import { Controller, Post, Body } from '@nestjs/common';
+///auth.controller.ts
+
+import { Controller, Post, Body, ValidationPipe } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from 'src/users/register.dto';
 
@@ -16,7 +18,7 @@ export class AuthController {
   }
 
   @Post('register')
-  async register(@Body() registerDto: RegisterDto) {
+  async register(@Body(new ValidationPipe()) registerDto: RegisterDto) {
     return this.authService.register(
       registerDto.username,
       registerDto.email,

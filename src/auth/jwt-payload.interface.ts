@@ -1,5 +1,7 @@
+// jwt-payload.interface.ts
+
 export interface JwtPayload {
-  sub: number;
-  email: string;
-  role: string;
+  sub: number; // Subject (typically user ID)
+  email: string; // User's email address
+  role: string; // User's role (e.g., 'admin', 'user')
 }
