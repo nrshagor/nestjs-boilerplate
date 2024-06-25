@@ -1,5 +1,3 @@
-// users/users.service.ts
-
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -18,7 +16,7 @@ export class UsersService {
     email: string,
     phone: string,
     password: string,
-    role: UserRole,
+    role: UserRole = UserRole.USER,
   ): Promise<User> {
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = this.usersRepository.create({
@@ -35,5 +33,24 @@ export class UsersService {
     return this.usersRepository.findOne({
       where: [{ email: identifier }, { phone: identifier }],
     });
+  }
+
+  async generateEmailVerificationCode(user: User): Promise<string> {
+    const verificationCode = Math.floor(
+      100000 + Math.random() * 900000,
+    ).toString();
+    user.verificationCode = verificationCode;
+    await this.usersRepository.save(user);
+    return verificationCode;
+  }
+
+  async verifyEmail(user: User, verificationCode: string): Promise<boolean> {
+    if (user.verificationCode === verificationCode) {
+      user.isEmailVerified = true;
+      user.verificationCode = null;
+      await this.usersRepository.save(user);
+      return true;
+    }
+    return false;
   }
 }

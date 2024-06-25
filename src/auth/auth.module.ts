@@ -1,5 +1,3 @@
-//auth/auth.module.ts;
-
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
@@ -8,6 +6,7 @@ import { AuthService } from './auth.service';
 import { UsersModule } from '../users/users.module';
 import { JwtStrategy } from './jwt.strategy';
 import { AuthController } from './auth.controller';
+import { MailerModule } from '../mailer/mailer.module';
 
 @Module({
   imports: [
@@ -21,6 +20,7 @@ import { AuthController } from './auth.controller';
       }),
       inject: [ConfigService],
     }),
+    MailerModule,
   ],
   providers: [AuthService, JwtStrategy],
   controllers: [AuthController],

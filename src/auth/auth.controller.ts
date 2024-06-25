@@ -1,6 +1,11 @@
-// auth/auth.controller.ts
-
-import { Controller, Post, Body, ValidationPipe } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  ValidationPipe,
+  Get,
+  Query,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from 'src/users/register.dto';
 
@@ -27,7 +32,22 @@ export class AuthController {
       registerDto.email,
       registerDto.phone,
       registerDto.password,
-      registerDto.role,
     );
+  }
+
+  @Get('verify-email')
+  async verifyEmail(
+    @Query('email') email: string,
+    @Query('code') verificationCode: string,
+  ) {
+    const isVerified = await this.authService.verifyEmail(
+      email,
+      verificationCode,
+    );
+    console.log(isVerified);
+    if (isVerified) {
+      return { message: 'Email verified successfully' };
+    }
+    return { message: 'Invalid verification code' };
   }
 }

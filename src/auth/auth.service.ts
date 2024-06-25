@@ -1,5 +1,3 @@
-// auth/auth.service.ts
-
 import {
   Injectable,
   NotFoundException,
@@ -9,12 +7,14 @@ import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { UserRole } from 'src/users/user.entity';
+import { MailerService } from '../mailer/mailer.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
+    private mailerService: MailerService,
   ) {}
 
   async validateUser(identifier: string, password: string): Promise<any> {
@@ -50,10 +50,33 @@ export class AuthService {
     email: string,
     phone: string,
     password: string,
-    role: UserRole,
+    role: UserRole = UserRole.USER,
   ) {
-    // Additional password validation can be implemented here if needed
-    // (e.g., check length, complexity, etc.)
-    return this.usersService.createUser(username, email, phone, password, role);
+    const newUser = await this.usersService.createUser(
+      username,
+      email,
+      phone,
+      password,
+      role,
+    );
+    const verificationCode =
+      await this.usersService.generateEmailVerificationCode(newUser);
+
+    // Send verification email
+    await this.mailerService.sendVerificationEmail(
+      newUser.email,
+      verificationCode,
+    );
+
+    return newUser;
+  }
+
+  async verifyEmail(email: string, verificationCode: string): Promise<boolean> {
+    const user = await this.usersService.findByEmailOrPhone(email);
+
+    if (!user) {
+      throw new NotFoundException('User not found with this email');
+    }
+    return this.usersService.verifyEmail(user, verificationCode);
   }
 }
