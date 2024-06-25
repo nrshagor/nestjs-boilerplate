@@ -1,6 +1,13 @@
 // users/register.dto.ts
 
-import { IsEmail, IsString, MinLength, IsEnum, Matches } from 'class-validator';
+import {
+  IsEmail,
+  IsString,
+  MinLength,
+  IsEnum,
+  Matches,
+  IsOptional,
+} from 'class-validator';
 import { UserRole } from './user.entity';
 
 export class RegisterDto {
@@ -17,6 +24,10 @@ export class RegisterDto {
   })
   password: string;
 
+  @IsString()
+  phone: string;
+
   @IsEnum(UserRole)
-  role: UserRole;
+  @IsOptional() // Make the role field optional
+  role?: UserRole = UserRole.USER; // Default value is 'user'
 }

@@ -16,6 +16,7 @@ export class UsersService {
   async createUser(
     username: string,
     email: string,
+    phone: string,
     password: string,
     role: UserRole,
   ): Promise<User> {
@@ -23,13 +24,16 @@ export class UsersService {
     const user = this.usersRepository.create({
       username,
       email,
+      phone,
       password: hashedPassword,
       role,
     });
     return this.usersRepository.save(user);
   }
 
-  async findByEmail(email: string): Promise<User | undefined> {
-    return this.usersRepository.findOne({ where: { email } });
+  async findByEmailOrPhone(identifier: string): Promise<User | undefined> {
+    return this.usersRepository.findOne({
+      where: [{ email: identifier }, { phone: identifier }],
+    });
   }
 }

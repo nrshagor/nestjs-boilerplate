@@ -1,4 +1,4 @@
-//auth/auth.controller.ts
+// auth/auth.controller.ts
 
 import { Controller, Post, Body, ValidationPipe } from '@nestjs/common';
 import { AuthService } from './auth.service';
@@ -9,8 +9,11 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('login')
-  async login(@Body() body: { email: string; password: string }) {
-    const user = await this.authService.validateUser(body.email, body.password);
+  async login(@Body() body: { identifier: string; password: string }) {
+    const user = await this.authService.validateUser(
+      body.identifier,
+      body.password,
+    );
     if (!user) {
       return { message: 'Invalid credentials' };
     }
@@ -22,6 +25,7 @@ export class AuthController {
     return this.authService.register(
       registerDto.username,
       registerDto.email,
+      registerDto.phone,
       registerDto.password,
       registerDto.role,
     );

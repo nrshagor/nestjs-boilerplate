@@ -1,4 +1,5 @@
 // auth/auth.service.ts
+
 import {
   Injectable,
   NotFoundException,
@@ -16,11 +17,13 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async validateUser(email: string, password: string): Promise<any> {
-    const user = await this.usersService.findByEmail(email);
+  async validateUser(identifier: string, password: string): Promise<any> {
+    const user = await this.usersService.findByEmailOrPhone(identifier);
 
     if (!user) {
-      throw new NotFoundException('User not found with this email');
+      throw new NotFoundException(
+        'User not found with this email or phone number',
+      );
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
@@ -45,11 +48,12 @@ export class AuthService {
   async register(
     username: string,
     email: string,
+    phone: string,
     password: string,
     role: UserRole,
   ) {
     // Additional password validation can be implemented here if needed
     // (e.g., check length, complexity, etc.)
-    return this.usersService.createUser(username, email, password, role);
+    return this.usersService.createUser(username, email, phone, password, role);
   }
 }
