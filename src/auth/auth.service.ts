@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -31,7 +32,11 @@ export class AuthService {
       throw new UnauthorizedException('Incorrect password');
     }
 
-    // If both checks pass, return the user object excluding the password
+    if (!user.isEmailVerified) {
+      throw new UnauthorizedException('Email is not verified');
+    }
+
+    // If all checks pass, return the user object excluding the password
     const { password: _, ...result } = user;
     return result;
   }
@@ -47,11 +52,16 @@ export class AuthService {
 
   async register(
     username: string,
-    email: string,
-    phone: string,
+    email: string | undefined,
+    phone: string | undefined,
     password: string,
+    confirmPassword: string,
     role: UserRole = UserRole.USER,
   ) {
+    if (password !== confirmPassword) {
+      throw new BadRequestException('Passwords do not match');
+    }
+
     const newUser = await this.usersService.createUser(
       username,
       email,
@@ -59,14 +69,17 @@ export class AuthService {
       password,
       role,
     );
+
     const verificationCode =
       await this.usersService.generateEmailVerificationCode(newUser);
 
-    // Send verification email
-    await this.mailerService.sendVerificationEmail(
-      newUser.email,
-      verificationCode,
-    );
+    // Send verification email if email is provided
+    if (newUser.email) {
+      await this.mailerService.sendVerificationEmail(
+        newUser.email,
+        verificationCode,
+      );
+    }
 
     return newUser;
   }

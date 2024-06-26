@@ -1,3 +1,5 @@
+// users/user.entity.ts
+
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
 export enum UserRole {
@@ -13,10 +15,10 @@ export class User {
   @Column()
   username: string;
 
-  @Column({ unique: true })
+  @Column({ unique: true, nullable: true }) // Make email nullable
   email: string;
 
-  @Column()
+  @Column({ nullable: true }) // Make phone nullable
   phone: string;
 
   @Column()

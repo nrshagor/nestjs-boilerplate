@@ -4,9 +4,10 @@ import {
   IsEmail,
   IsString,
   MinLength,
-  IsEnum,
   Matches,
+  IsEnum,
   IsOptional,
+  ValidateIf,
 } from 'class-validator';
 import { UserRole } from './user.entity';
 
@@ -14,8 +15,15 @@ export class RegisterDto {
   @IsString()
   username: string;
 
+  @IsOptional()
   @IsEmail()
-  email: string;
+  @ValidateIf((o) => o.email !== '') // Validate only if the email is provided
+  email?: string;
+
+  @IsOptional()
+  @IsString()
+  @ValidateIf((o) => o.phone !== '') // Validate only if the phone is provided
+  phone?: string;
 
   @IsString()
   @MinLength(6, { message: 'Password must be at least 6 characters' })
@@ -25,7 +33,7 @@ export class RegisterDto {
   password: string;
 
   @IsString()
-  phone: string;
+  confirmPassword: string;
 
   @IsEnum(UserRole)
   @IsOptional() // Make the role field optional
