@@ -32,8 +32,12 @@ export class AuthService {
       throw new UnauthorizedException('Incorrect password');
     }
 
-    if (!user.isEmailVerified) {
+    if (user.email && !user.isEmailVerified) {
       throw new UnauthorizedException('Email is not verified');
+    }
+
+    if (user.phone && !user.isPhoneVerified) {
+      throw new UnauthorizedException('Phone is not verified');
     }
 
     // If all checks pass, return the user object excluding the password
@@ -70,20 +74,27 @@ export class AuthService {
       role,
     );
 
-    const verificationCode =
-      await this.usersService.generateEmailVerificationCode(newUser);
-
-    // Send verification email if email is provided
     if (newUser.email) {
+      const emailVerificationCode =
+        await this.usersService.generateEmailVerificationCode(newUser);
       await this.mailerService.sendVerificationEmail(
         newUser.email,
-        verificationCode,
+        emailVerificationCode,
       );
+    }
+
+    if (newUser.phone) {
+      const phoneVerificationCode =
+        await this.usersService.generatePhoneVerificationCode(newUser);
+      // Assume you have a method in MailerService to send SMS
+      // await this.mailerService.sendVerificationSms(
+      //   newUser.phone,
+      //   phoneVerificationCode,
+      // );
     }
 
     return newUser;
   }
-
   async verifyEmail(email: string, verificationCode: string): Promise<boolean> {
     const user = await this.usersService.findByEmailOrPhone(email);
 
@@ -91,5 +102,14 @@ export class AuthService {
       throw new NotFoundException('User not found with this email');
     }
     return this.usersService.verifyEmail(user, verificationCode);
+  }
+
+  async verifyPhone(phone: string, verificationCode: string): Promise<boolean> {
+    const user = await this.usersService.findByEmailOrPhone(phone);
+
+    if (!user) {
+      throw new NotFoundException('User not found with this phone number');
+    }
+    return this.usersService.verifyPhone(user, verificationCode);
   }
 }

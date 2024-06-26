@@ -46,9 +46,23 @@ export class AuthController {
       email,
       verificationCode,
     );
-    console.log(isVerified);
     if (isVerified) {
       return { message: 'Email verified successfully' };
+    }
+    return { message: 'Invalid verification code' };
+  }
+
+  @Get('verify-phone')
+  async verifyPhone(
+    @Query('phone') phone: string,
+    @Query('code') verificationCode: string,
+  ) {
+    const isVerified = await this.authService.verifyPhone(
+      phone,
+      verificationCode,
+    );
+    if (isVerified) {
+      return { message: 'Phone verified successfully' };
     }
     return { message: 'Invalid verification code' };
   }

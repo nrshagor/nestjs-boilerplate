@@ -35,19 +35,42 @@ export class UsersService {
     });
   }
 
-  async generateEmailVerificationCode(user: User): Promise<string> {
+  async generateEmailVerificationCode(user: User): Promise<string | null> {
+    if (!user.email) return null;
+
     const verificationCode = Math.floor(
       100000 + Math.random() * 900000,
     ).toString();
-    user.verificationCode = verificationCode;
+    user.emailVerificationCode = verificationCode;
+    await this.usersRepository.save(user);
+    return verificationCode;
+  }
+
+  async generatePhoneVerificationCode(user: User): Promise<string | null> {
+    if (!user.phone) return null;
+
+    const verificationCode = Math.floor(
+      100000 + Math.random() * 900000,
+    ).toString();
+    user.phoneVerificationCode = verificationCode;
     await this.usersRepository.save(user);
     return verificationCode;
   }
 
   async verifyEmail(user: User, verificationCode: string): Promise<boolean> {
-    if (user.verificationCode === verificationCode) {
+    if (user.emailVerificationCode === verificationCode) {
       user.isEmailVerified = true;
-      user.verificationCode = null;
+      user.emailVerificationCode = null;
+      await this.usersRepository.save(user);
+      return true;
+    }
+    return false;
+  }
+
+  async verifyPhone(user: User, verificationCode: string): Promise<boolean> {
+    if (user.phoneVerificationCode === verificationCode) {
+      user.isPhoneVerified = true;
+      user.phoneVerificationCode = null;
       await this.usersRepository.save(user);
       return true;
     }
