@@ -5,9 +5,11 @@ import {
   ValidationPipe,
   Get,
   Query,
+  BadRequestException,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from 'src/users/register.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -65,5 +67,18 @@ export class AuthController {
       return { message: 'Phone verified successfully' };
     }
     return { message: 'Invalid verification code' };
+  }
+
+  @Post('request-password-reset')
+  async requestPasswordReset(@Body('identifier') identifier: string) {
+    await this.authService.requestPasswordReset(identifier);
+    return { message: 'Password reset code sent' };
+  }
+
+  @Post('reset-password')
+  async resetPassword(
+    @Body(new ValidationPipe()) resetPasswordDto: ResetPasswordDto,
+  ) {
+    return this.authService.resetPassword(resetPasswordDto);
   }
 }

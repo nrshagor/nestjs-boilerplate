@@ -76,4 +76,21 @@ export class UsersService {
     }
     return false;
   }
+
+  async generatePasswordResetCode(user: User): Promise<string> {
+    const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
+    user.resetCode = resetCode;
+    await this.usersRepository.save(user);
+    return resetCode;
+  }
+
+  async verifyPasswordResetCode(
+    user: User,
+    resetCode: string,
+  ): Promise<boolean> {
+    return user.resetCode === resetCode;
+  }
+  async save(user: User): Promise<User> {
+    return this.usersRepository.save(user);
+  }
 }

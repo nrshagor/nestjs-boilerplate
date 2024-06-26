@@ -40,4 +40,7 @@ export class User {
 
   @Column({ default: false })
   isPhoneVerified: boolean;
+
+  @Column({ nullable: true })
+  resetCode: string; // New column for password reset code
 }

@@ -41,4 +41,30 @@ export class MailerService {
 
     await this.transporter.sendMail(mailOptions);
   }
+
+  async sendPasswordResetEmail(to: string, resetCode: string) {
+    const templatePath = join(
+      process.cwd(),
+      'src',
+      'mailer',
+      'templates',
+      'reset-password-email.hbs',
+    );
+    const template = readFileSync(templatePath, 'utf8');
+    const compiledTemplate = hbs.compile(template);
+    const html = compiledTemplate({ resetCode });
+
+    const mailOptions = {
+      from: 'no-reply@codenrs.com', // Sender address
+      to, // Receiver address
+      subject: 'Password Reset', // Subject line
+      html, // HTML body
+    };
+
+    await this.transporter.sendMail(mailOptions);
+  }
+
+  async sendPasswordResetSMS(phone: string, resetCode: string) {
+    // Implement your SMS sending logic here
+  }
 }

@@ -9,6 +9,7 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { UserRole } from 'src/users/user.entity';
 import { MailerService } from '../mailer/mailer.service';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -111,5 +112,48 @@ export class AuthService {
       throw new NotFoundException('User not found with this phone number');
     }
     return this.usersService.verifyPhone(user, verificationCode);
+  }
+  // formget password
+  async requestPasswordReset(identifier: string): Promise<void> {
+    const user = await this.usersService.findByEmailOrPhone(identifier);
+    if (!user) {
+      throw new NotFoundException(
+        'User not found with this email or phone number',
+      );
+    }
+
+    const resetCode = await this.usersService.generatePasswordResetCode(user);
+
+    if (user.email === identifier) {
+      await this.mailerService.sendPasswordResetEmail(user.email, resetCode);
+    } else if (user.phone === identifier) {
+      await this.mailerService.sendPasswordResetSMS(user.phone, resetCode); // You need to implement this method
+    }
+  }
+
+  async resetPassword(resetPasswordDto: ResetPasswordDto) {
+    const { identifier, resetCode, newPassword, confirmPassword } =
+      resetPasswordDto;
+
+    const user = await this.usersService.findByEmailOrPhone(identifier);
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (user.resetCode !== resetCode) {
+      throw new BadRequestException('Invalid reset code');
+    }
+
+    if (newPassword !== confirmPassword) {
+      throw new BadRequestException('Passwords do not match');
+    }
+
+    user.password = await bcrypt.hash(newPassword, 10);
+    user.resetCode = null; // Clear the reset code after successful reset
+
+    await this.usersService.save(user);
+
+    return { message: 'Password reset successful' };
   }
 }
