@@ -59,10 +59,11 @@ export class AuthController {
   async verifyPhone(
     @Query('phone') phone: string,
     @Query('code') verificationCode: string,
+    @Body() body: { phone: string; verificationCode: string },
   ) {
     const isVerified = await this.authService.verifyPhone(
-      phone,
-      verificationCode,
+      body.phone,
+      body.verificationCode,
     );
     if (isVerified) {
       return { message: 'Phone verified successfully' };
