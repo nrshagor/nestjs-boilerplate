@@ -1,3 +1,4 @@
+// auth/ auth.service.ts
 import {
   BadRequestException,
   Injectable,
@@ -10,6 +11,7 @@ import * as bcrypt from 'bcrypt';
 import { UserRole } from 'src/users/user.entity';
 import { MailerService } from '../mailer/mailer.service';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -137,7 +139,7 @@ export class AuthService {
       await this.mailerService.sendPasswordResetSMS(user.phone, resetCode); // You need to implement this method
     }
   }
-
+  // resetPassword
   async resetPassword(resetPasswordDto: ResetPasswordDto) {
     const { identifier, resetCode, newPassword, confirmPassword } =
       resetPasswordDto;
@@ -162,5 +164,30 @@ export class AuthService {
     await this.usersService.save(user);
 
     return { message: 'Password reset successful' };
+  }
+
+  // changePassword
+  async changePassword(
+    userId: number,
+    changePasswordDto: ChangePasswordDto,
+  ): Promise<void> {
+    const { oldPassword, newPassword, confirmNewPassword } = changePasswordDto;
+
+    if (newPassword !== confirmNewPassword) {
+      throw new BadRequestException('New passwords do not match');
+    }
+
+    const user = await this.usersService.findById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const isOldPasswordValid = await bcrypt.compare(oldPassword, user.password);
+    if (!isOldPasswordValid) {
+      throw new UnauthorizedException('Old password is incorrect');
+    }
+
+    user.password = await bcrypt.hash(newPassword, 10);
+    await this.usersService.save(user);
   }
 }

@@ -1,3 +1,5 @@
+// auth/auth.controller.ts
+
 import {
   Controller,
   Post,
@@ -5,11 +7,14 @@ import {
   ValidationPipe,
   Get,
   Query,
-  BadRequestException,
+  UseGuards,
+  Req,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from 'src/users/register.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { JwtAuthGuard } from './jwt-auth.guard';
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -82,5 +87,16 @@ export class AuthController {
     @Body(new ValidationPipe()) resetPasswordDto: ResetPasswordDto,
   ) {
     return this.authService.resetPassword(resetPasswordDto);
+  }
+
+  @Post('change-password')
+  @UseGuards(JwtAuthGuard)
+  async changePassword(
+    @Req() req,
+    @Body() changePasswordDto: ChangePasswordDto,
+  ) {
+    const userId = req.user.userId;
+    await this.authService.changePassword(userId, changePasswordDto);
+    return { message: 'Password changed successfully' };
   }
 }

@@ -1,12 +1,18 @@
-// main.ts
-
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      transform: true,
+      forbidNonWhitelisted: true,
+      disableErrorMessages: false,
+    }),
+  );
+
   const allowedOrigins = [
     'http://localhost:3001',
     'http://localhost:3000',
@@ -14,7 +20,6 @@ async function bootstrap() {
     process.env.NEXTJS_FRONTEND_URL,
   ];
 
-  // Configure CORS
   app.enableCors({
     origin: (origin, callback) => {
       if (allowedOrigins.includes(origin) || !origin) {
@@ -23,8 +28,9 @@ async function bootstrap() {
         callback(new Error('Not allowed by CORS'));
       }
     },
-    credentials: true, // Allow cookies to be sent and received
+    credentials: true,
   });
+
   await app.listen(3000);
 }
 bootstrap();

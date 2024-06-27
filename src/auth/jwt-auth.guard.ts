@@ -1,4 +1,5 @@
 // auth/jwt-auth.guard.ts
+
 import {
   Injectable,
   ExecutionContext,
@@ -14,8 +15,10 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
 
   handleRequest(err, user, info) {
     if (err || !user) {
+      console.log('Error or no user:', err, user, info); // Add this line for debugging
       throw err || new UnauthorizedException();
     }
+    console.log('User from JwtAuthGuard:', user); // Add this line for debugging
     return user;
   }
 }
