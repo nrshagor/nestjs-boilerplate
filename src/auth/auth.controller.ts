@@ -39,14 +39,15 @@ export class AuthController {
     );
   }
 
-  @Get('verify-email')
+  @Post('verify-email')
   async verifyEmail(
     @Query('email') email: string,
     @Query('code') verificationCode: string,
+    @Body() body: { email: string; verificationCode: string },
   ) {
     const isVerified = await this.authService.verifyEmail(
-      email,
-      verificationCode,
+      body.email,
+      body.verificationCode,
     );
     if (isVerified) {
       return { message: 'Email verified successfully' };
