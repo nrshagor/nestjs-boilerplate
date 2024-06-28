@@ -34,8 +34,14 @@ async function bootstrap() {
     credentials: true,
   });
 
-  app.useStaticAssets(join(__dirname, '..', 'uploads'), {
-    prefix: '/uploads/',
+  // Serve static files for profile pictures
+  app.useStaticAssets(join(__dirname, '..', 'uploads/profile-pictures'), {
+    prefix: '/',
+  });
+
+  // Serve static files for product images
+  app.useStaticAssets(join(__dirname, '..', 'uploads/product'), {
+    prefix: '/',
   });
 
   await app.listen(3000);

@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { User, UserRole } from './user.entity';
 import * as bcrypt from 'bcrypt';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { deleteFile } from 'src/utils/file.utils';
 
 @Injectable()
 export class UsersService {
@@ -113,19 +114,30 @@ export class UsersService {
     profilePictureUrl: string,
   ): Promise<User> {
     const user = await this.findById(userId);
-    user.profilePictureUrl = profilePictureUrl;
 
+    // Delete old profile picture if exists
+    if (user.profilePictureUrl) {
+      await deleteFile(`./uploads/profile-pictures/${user.profilePictureUrl}`);
+    }
+
+    user.profilePictureUrl = profilePictureUrl;
     return this.save(user);
   }
+
   async updateProfilePictures(
     userId: number,
     profilePictureUrls: string[],
   ): Promise<User> {
     const user = await this.findById(userId);
-    user.profilePictureUrls = [
-      ...(user.profilePictureUrls || []),
-      ...profilePictureUrls,
-    ];
+
+    // Delete old profile pictures if exist
+    if (user.profilePictureUrls && user.profilePictureUrls.length > 0) {
+      for (const url of user.profilePictureUrls) {
+        await deleteFile(`./uploads/profile-pictures/${url}`);
+      }
+    }
+
+    user.profilePictureUrls = profilePictureUrls;
     return this.save(user);
   }
 

@@ -142,7 +142,7 @@ export class AuthController {
     @UploadedFile() file: Express.Multer.File,
   ) {
     const userId = req.user.userId;
-    const profilePictureUrl = `/uploads/profile-pictures/${file.filename}`;
+    const profilePictureUrl = file.filename; // Store only filename
     const updatedUser = await this.usersService.updateProfilePicture(
       userId,
       profilePictureUrl,
@@ -159,12 +159,13 @@ export class AuthController {
   ) {
     const userId = req.user.userId;
     const fileUrls = files.map(
-      (file) => `/uploads/profile-pictures/${file.filename}`,
+      (file) => file.filename, // Store only filename
     );
 
-    const user = await this.usersService.findById(userId);
-    user.profilePictureUrls = [...(user.profilePictureUrls || []), ...fileUrls];
-    const updatedUser = await this.usersService.save(user);
+    const updatedUser = await this.usersService.updateProfilePictures(
+      userId,
+      fileUrls,
+    );
 
     return updatedUser;
   }
