@@ -117,6 +117,17 @@ export class UsersService {
 
     return this.save(user);
   }
+  async updateProfilePictures(
+    userId: number,
+    profilePictureUrls: string[],
+  ): Promise<User> {
+    const user = await this.findById(userId);
+    user.profilePictureUrls = [
+      ...(user.profilePictureUrls || []),
+      ...profilePictureUrls,
+    ];
+    return this.save(user);
+  }
 
   async findByEmail(email: string): Promise<User> {
     return this.usersRepository.findOne({ where: { email } });

@@ -67,6 +67,9 @@ export class User {
   @Column({ nullable: true })
   profilePictureUrl: string;
 
+  @Column({ type: 'simple-array', nullable: true })
+  profilePictureUrls: string[]; // Changed to store multiple image paths
+
   @Column({ nullable: true })
   newEmail: string; // New email property for email change verification
 }

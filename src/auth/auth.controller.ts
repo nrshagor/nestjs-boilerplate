@@ -1,5 +1,3 @@
-// auth/auth.controller.ts
-
 import {
   Controller,
   Post,
@@ -12,6 +10,7 @@ import {
   Put,
   UseInterceptors,
   UploadedFile,
+  UploadedFiles,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from 'src/users/register.dto';
@@ -19,10 +18,11 @@ import { ResetPasswordDto } from './dto/reset-password.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { UpdateProfileDto } from 'src/users/dto/update-profile.dto';
-import { multerOptions } from 'src/multer.config';
+import { multerSingleImage, multerMultiImage } from 'src/multer.config';
 import { UsersService } from 'src/users/users.service';
 import { MailerService } from '../mailer/mailer.service';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
+
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -136,23 +136,37 @@ export class AuthController {
 
   @Put('update-profile-picture')
   @UseGuards(JwtAuthGuard)
-  async updateProfilePicture(@Req() req, @Body() body: any) {
-    return new Promise((resolve, reject) => {
-      const upload = multerOptions.single('profilePictureUrl');
-      upload(req, body, async (err) => {
-        if (err) {
-          console.error(err);
-          reject(err);
-        }
-        const userId = req.user.userId;
-        const profilePictureUrl = `/uploads/profile-pictures/${req.file.filename}`;
-        const updatedUser = await this.usersService.updateProfilePicture(
-          userId,
-          profilePictureUrl,
-        );
-        resolve(updatedUser);
-      });
-    });
+  @UseInterceptors(FileInterceptor('profilePictureUrl', multerSingleImage))
+  async updateProfilePicture(
+    @Req() req,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    const userId = req.user.userId;
+    const profilePictureUrl = `/uploads/profile-pictures/${file.filename}`;
+    const updatedUser = await this.usersService.updateProfilePicture(
+      userId,
+      profilePictureUrl,
+    );
+    return updatedUser;
+  }
+
+  @Put('update-profile-pictures')
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(FilesInterceptor('files', 10, multerMultiImage))
+  async updateProfilePictures(
+    @Req() req,
+    @UploadedFiles() files: Express.Multer.File[],
+  ) {
+    const userId = req.user.userId;
+    const fileUrls = files.map(
+      (file) => `/uploads/profile-pictures/${file.filename}`,
+    );
+
+    const user = await this.usersService.findById(userId);
+    user.profilePictureUrls = [...(user.profilePictureUrls || []), ...fileUrls];
+    const updatedUser = await this.usersService.save(user);
+
+    return updatedUser;
   }
 
   @Post('verify-new-email')
