@@ -136,7 +136,12 @@ export class AuthController {
 
   @Put('update-profile-picture')
   @UseGuards(JwtAuthGuard)
-  @UseInterceptors(FileInterceptor('profilePictureUrl', multerSingleImage))
+  @UseInterceptors(
+    FileInterceptor(
+      'profilePictureUrl',
+      multerSingleImage('./uploads/profile-pictures'),
+    ),
+  )
   async updateProfilePicture(
     @Req() req,
     @UploadedFile() file: Express.Multer.File,
@@ -152,7 +157,13 @@ export class AuthController {
 
   @Put('update-profile-pictures')
   @UseGuards(JwtAuthGuard)
-  @UseInterceptors(FilesInterceptor('files', 10, multerMultiImage))
+  @UseInterceptors(
+    FilesInterceptor(
+      'files',
+      10,
+      multerMultiImage('./uploads/profile-pictures'),
+    ),
+  )
   async updateProfilePictures(
     @Req() req,
     @UploadedFiles() files: Express.Multer.File[],

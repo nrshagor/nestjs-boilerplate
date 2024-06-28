@@ -2,9 +2,11 @@ import { extname } from 'path';
 import { diskStorage } from 'multer';
 import { MulterOptions } from '@nestjs/platform-express/multer/interfaces/multer-options.interface';
 
-export const multerSingleImage: MulterOptions = {
+export const multerSingleImage = (destinationPath: string): MulterOptions => ({
   storage: diskStorage({
-    destination: './uploads/profile-pictures',
+    destination: (req, file, cb) => {
+      cb(null, destinationPath);
+    },
     filename: (req, file, cb) => {
       const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
       const ext = extname(file.originalname);
@@ -18,11 +20,13 @@ export const multerSingleImage: MulterOptions = {
     }
     cb(null, true);
   },
-};
+});
 
-export const multerMultiImage: MulterOptions = {
+export const multerMultiImage = (destinationPath: string): MulterOptions => ({
   storage: diskStorage({
-    destination: './uploads/profile-pictures',
+    destination: (req, file, cb) => {
+      cb(null, destinationPath);
+    },
     filename: (req, file, cb) => {
       const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
       const ext = extname(file.originalname);
@@ -36,4 +40,4 @@ export const multerMultiImage: MulterOptions = {
     }
     cb(null, true);
   },
-};
+});
