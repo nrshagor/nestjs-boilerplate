@@ -1,3 +1,5 @@
+// users/user.entity.ts
+
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
 export enum UserRole {
@@ -11,7 +13,7 @@ export class User {
   id: number;
 
   @Column()
-  username: string;
+  firstName: string;
 
   @Column({ unique: true, nullable: true })
   email: string;
@@ -43,4 +45,28 @@ export class User {
 
   @Column({ nullable: true })
   resetCode: string; // New column for password reset code
+
+  @Column({ nullable: true })
+  lastname: string;
+
+  @Column({ nullable: true })
+  division: string;
+
+  @Column({ nullable: true })
+  district: string;
+
+  @Column({ nullable: true })
+  thana: string;
+
+  @Column({ nullable: true })
+  buildingAddress: string;
+
+  @Column({ nullable: true })
+  postalCode: string;
+
+  @Column({ nullable: true })
+  profilePictureUrl: string;
+
+  @Column({ nullable: true })
+  newEmail: string; // New email property for email change verification
 }

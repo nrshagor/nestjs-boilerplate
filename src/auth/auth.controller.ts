@@ -9,16 +9,27 @@ import {
   Query,
   UseGuards,
   Req,
+  Put,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from 'src/users/register.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { ChangePasswordDto } from './dto/change-password.dto';
-
+import { UpdateProfileDto } from 'src/users/dto/update-profile.dto';
+import { multerOptions } from 'src/multer.config';
+import { UsersService } from 'src/users/users.service';
+import { MailerService } from '../mailer/mailer.service';
+import { FileInterceptor } from '@nestjs/platform-express';
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private readonly usersService: UsersService,
+    private readonly mailerService: MailerService,
+  ) {}
 
   @Post('login')
   async login(@Body() body: { identifier: string; password: string }) {
@@ -35,7 +46,7 @@ export class AuthController {
   @Post('register')
   async register(@Body(new ValidationPipe()) registerDto: RegisterDto) {
     return this.authService.register(
-      registerDto.username,
+      registerDto.firstName,
       registerDto.email,
       registerDto.phone,
       registerDto.password,
@@ -98,5 +109,67 @@ export class AuthController {
     const userId = req.user.userId;
     await this.authService.changePassword(userId, changePasswordDto);
     return { message: 'Password changed successfully' };
+  }
+
+  @Put('update-profile')
+  @UseGuards(JwtAuthGuard)
+  async updateProfile(@Req() req, @Body() updateProfileDto: UpdateProfileDto) {
+    const userId = req.user.userId;
+    if (updateProfileDto.newEmail) {
+      const user = await this.usersService.findById(userId);
+      user.newEmail = updateProfileDto.newEmail;
+      await this.usersService.save(user);
+      const emailVerificationCode =
+        await this.usersService.generateEmailVerificationCode(user);
+      await this.mailerService.sendVerificationEmail(
+        user.newEmail,
+        emailVerificationCode,
+      );
+      return { message: 'Verification email sent to new email address' };
+    }
+    const updatedUser = await this.usersService.updateProfile(
+      userId,
+      updateProfileDto,
+    );
+    return updatedUser;
+  }
+
+  @Put('update-profile-picture')
+  @UseGuards(JwtAuthGuard)
+  async updateProfilePicture(@Req() req, @Body() body: any) {
+    return new Promise((resolve, reject) => {
+      const upload = multerOptions.single('profilePictureUrl');
+      upload(req, body, async (err) => {
+        if (err) {
+          console.error(err);
+          reject(err);
+        }
+        const userId = req.user.userId;
+        const profilePictureUrl = `/uploads/profile-pictures/${req.file.filename}`;
+        const updatedUser = await this.usersService.updateProfilePicture(
+          userId,
+          profilePictureUrl,
+        );
+        resolve(updatedUser);
+      });
+    });
+  }
+
+  @Post('verify-new-email')
+  @UseGuards(JwtAuthGuard)
+  async verifyNewEmail(@Req() req, @Body() body: { verificationCode: string }) {
+    const userId = req.user.userId;
+    const user = await this.usersService.findById(userId);
+    const isVerified = await this.usersService.verifyEmail(
+      user,
+      body.verificationCode,
+    );
+    if (isVerified) {
+      user.email = user.newEmail;
+      user.newEmail = null;
+      await this.usersService.save(user);
+      return { message: 'Email verified and updated successfully' };
+    }
+    return { message: 'Invalid verification code' };
   }
 }

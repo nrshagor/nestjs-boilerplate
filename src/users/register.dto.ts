@@ -13,7 +13,7 @@ import { UserRole } from './user.entity';
 
 export class RegisterDto {
   @IsString()
-  username: string;
+  firstName: string;
 
   @IsOptional()
   @IsEmail()
